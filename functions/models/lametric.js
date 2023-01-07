@@ -34,11 +34,11 @@ const generateFrame = (text, routeId, index = 0) => {
         "index": index
     }
 }
-const generateFrames = (trains, maxFrames = 3) => {
+const generateFrames = (trains, maxFrames = 4) => {
     const result = { frames: [] };
-    const max =  trains.length > maxFrames ? maxFrames : trains.length;
+    const max =  trains.length >= maxFrames ? maxFrames : trains.length;
     let time, routeId;
-    for(let i=0; i < max; i++){
+    for(let i=0; i < (max-1); i++){
         ({time, routeId} = trains[i]);
         result.frames.push(generateFrame(time, routeId, i))
     }
