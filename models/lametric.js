@@ -34,13 +34,22 @@ const generateFrame = (text, routeId, index = 0) => {
         "index": index
     }
 }
-const generateFrames = (trains, maxFrames = 4) => {
-    const result = { frames: [] };
+const generateFrames = (data, maxFrames = 4) => {
+    const stopName = data.stopName;
+    const trains = data.trains;
+    const direction = data.direction;
+    const result = { frames: [
+        {
+            "text": `${stopName} (${direction})`,
+            "icon": 4469,
+            "index": 0
+        }
+    ] };
     const max =  trains.length >= maxFrames ? maxFrames : trains.length;
     let time, routeId;
     for(let i=0; i < (max-1); i++){
         ({time, routeId} = trains[i]);
-        result.frames.push(generateFrame(time, routeId, i))
+        result.frames.push(generateFrame(time, routeId, i+1))
     }
 
     return result;
