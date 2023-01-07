@@ -25,10 +25,8 @@ router.get('/frames', function(req, res, next) {
     const stopId = req.query.stopId;
 
     getStopIdIndex(stopId, (dbIndex) => {
-      getStopNameByIndex(dbIndex, (stopName) => {
-        getStopDataByIndex(dbIndex, (stopData) => {
-          res.json(generateFrames(stopData.trains))
-        })
+      getStopDataByIndex(dbIndex, (stopData) => {
+        res.json(generateFrames(stopData.trains))
       })
     })
 });

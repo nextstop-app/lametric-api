@@ -1,20 +1,20 @@
-var { initializeApp } = require('firebase/app');
-var { getDatabase, ref, onValue, equalTo, query, orderByKey, orderByValue, child, get } = require("firebase/database");
+const { initializeApp } = require('firebase/app');
+const { getDatabase, ref, onValue, equalTo, query, orderByKey, orderByValue, child, get } = require("firebase/database");
 
-const firebaseConfig = {
+const DB_ID_PATH = process.env.DB_ID_PATH;
+const DB_NAME_PATH = process.env.DB_NAME_PATH;
+const DB_DATA_PATH = process.env.DB_DATA_PATH;
+const fbApp = initializeApp({
+  projectId: 'next-stop-app',
   databaseURL: process.env.FIREBASE_RT_URI,
-};
-
-const fbApp = initializeApp(firebaseConfig);
-
+});
 const db = getDatabase(fbApp);
 
 const getStopIdIndex = (stopId, callback) => {
-  const indexRef = query(ref(db, process.env.DB_ID_PATH), orderByValue(), equalTo(stopId));
+  const indexRef = query(ref(db, DB_ID_PATH), orderByValue(), equalTo(stopId));
   onValue(indexRef, (snapshot) => {
     snapshot.forEach((childSnapshot) => {
       const childKey = childSnapshot.key;
-      console.log(childKey);
       callback(childKey)
     });
   }, {
@@ -23,7 +23,7 @@ const getStopIdIndex = (stopId, callback) => {
 }
 
 const getStopNameByIndex = (dbIndex, callback) => {
-  get(ref(db, `${process.env.DB_NAME_PATH}${dbIndex}`)).then((snapshot) => {
+  get(ref(db, `${DB_NAME_PATH}${dbIndex}`)).then((snapshot) => {
     if (snapshot.exists()) {
       console.log(snapshot.val());
       callback(snapshot.val())
@@ -38,15 +38,13 @@ const getStopNameByIndex = (dbIndex, callback) => {
 }
 
 const getStopDataByIndex = (dbIndex, callback) => {
-  get(ref(db, `${process.env.DB_DATA_PATH}${dbIndex}`)).then((snapshot) => {
+  get(ref(db, `${DB_DATA_PATH}${dbIndex}`)).then((snapshot) => {
     if (snapshot.exists()) {
-      console.log(snapshot.val());
       callback(snapshot.val())
     } else {
       console.log("No stopdata available");
       callback([])
     }
-    callback()
   }).catch((error) => {
     console.error(error);
   });
