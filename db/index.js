@@ -1,57 +1,58 @@
-const { initializeApp } = require('firebase/app');
-const { getDatabase, ref, onValue, equalTo, query, orderByKey, orderByValue, child, get } = require("firebase/database");
+const { initializeApp } = require('firebase-admin/app');
+const { getDatabase } = require("firebase-admin/database");
 
 const DB_ID_PATH = process.env.DB_ID_PATH;
 const DB_NAME_PATH = process.env.DB_NAME_PATH;
 const DB_DATA_PATH = process.env.DB_DATA_PATH;
+
 const fbApp = initializeApp({
-  projectId: 'next-stop-app',
-  databaseURL: process.env.FIREBASE_RT_URI,
+  databaseURL: process.env.FIREBASE_RT_URI
 });
 const db = getDatabase(fbApp);
 
 const getStopIdIndex = (stopId, callback) => {
-  const indexRef = query(ref(db, DB_ID_PATH), orderByValue(), equalTo(stopId));
-  onValue(indexRef, (snapshot) => {
-    snapshot.forEach((childSnapshot) => {
-      const childKey = childSnapshot.key;
-      callback(childKey)
-    });
-  }, {
-    onlyOnce: true
+  const ref = db.ref(DB_ID_PATH);
+  ref.orderByValue().equalTo(stopId).limitToLast(1).on('value', (snapshot) => {
+
+    if (snapshot.numChildren() === 1){
+      snapshot.forEach((data) => {
+        const childKey = data.key;
+        callback(childKey)
+      });
+    } else {
+      callback(0); //TODO: graceful error handling
+    }
+  }, (res) => {
+    console.error('Error', res)
+    callback(0) //TODO: graceful error handling
   });
+
 }
 
 const getStopNameByIndex = (dbIndex, callback) => {
-  get(ref(db, `${DB_NAME_PATH}${dbIndex}`)).then((snapshot) => {
-    if (snapshot.exists()) {
-      console.log(snapshot.val());
-      callback(snapshot.val())
-    } else {
-      console.log("No stopname available");
-      callback('')
-
-    }
-  }).catch((error) => {
-    console.error(error);
+  const ref = db.ref(`${DB_NAME_PATH}${dbIndex}`);
+  ref.once('value', (data) => {
+    callback(data.val())
+  }, (res) => {
+    console.error('Error', res)
+    callback([])
   });
 }
 
 const getStopDataByIndex = (dbIndex, callback) => {
-  get(ref(db, `${DB_DATA_PATH}${dbIndex}`)).then((snapshot) => {
-    if (snapshot.exists()) {
-      callback(snapshot.val())
-    } else {
-      console.log("No stopdata available");
-      callback([])
-    }
-  }).catch((error) => {
-    console.error(error);
+  const ref = db.ref(`${DB_DATA_PATH}${dbIndex}`);
+  ref.once('value', (data) => {
+    console.log('data.val()', data.val())
+
+    callback(data.val())
+  }, (res) => {
+    console.error('Error', res)
+    callback([])
   });
 }
 
 module.exports = {
     getStopIdIndex,
     getStopNameByIndex,
-    getStopDataByIndex
+    getStopDataByIndex,
 };
